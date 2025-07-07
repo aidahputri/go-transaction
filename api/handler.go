@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	// "strconv"
-
+	"log"
 	"github.com/aidahputri/go-transaction/model"
 	"github.com/aidahputri/go-transaction/repo"
 )
@@ -56,7 +56,7 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid account number format: must be 10 digits", http.StatusBadRequest)
 		return
 	}
-	
+
 	if err := h.AccountRepo.Create(r.Context(), acc); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -180,6 +180,14 @@ func (h *Handler) Transfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Publish to Kafka here if needed
+	txJson, err := json.Marshal(tx)
+	if err != nil {
+		log.Println("failed to marshal transaction for kafka:", err)
+	} else {
+		if err := PublishTransferMessage(txJson); err != nil {
+			log.Println("failed to publish to kafka:", err)
+		}
+	}
 
 	json.NewEncoder(w).Encode(map[string]string{"message": "transfer successful"})
 }
