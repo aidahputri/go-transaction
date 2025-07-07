@@ -17,7 +17,7 @@ func NewAccount(db *sql.DB) *Account {
 }
 
 func (u *Account) Create(ctx context.Context, a model.Account) error {
-	query := `INSERT INTO accounts (name, account_number) VALUES ($1, $2)`
+	query := `INSERT INTO account (name, account_number) VALUES ($1, $2)`
 	row := u.db.QueryRowContext(ctx, query, a.Name, a.AccountNumber)
 	if row.Err() != nil {
 		return row.Err()
@@ -27,7 +27,7 @@ func (u *Account) Create(ctx context.Context, a model.Account) error {
 }
 
 func (u *Account) Get(ctx context.Context, accountNumber string) (model.Account, error) {
-	query := `SELECT name, account_number, balance, blacklisted, under_watch FROM accounts WHERE account_number = $1`
+	query := `SELECT name, account_number, balance, blacklisted, under_watch FROM account WHERE account_number = $1`
 	row := u.db.QueryRowContext(ctx, query, accountNumber)
 	var acc model.Account
 
@@ -39,7 +39,7 @@ func (u *Account) Get(ctx context.Context, accountNumber string) (model.Account,
 }
 
 func (u *Account) Update(ctx context.Context, a model.Account) (model.Account, error) {
-	query := `UPDATE accounts SET name = $1, balance = $3, blacklisted = $4, under_watch = $5 WHERE account_number = $6`
+	query := `UPDATE account SET name = $1, balance = $2, blacklisted = $3, under_watch = $4 WHERE account_number = $5`
 	res, err := u.db.ExecContext(ctx, query, a.Name, a.Balance, a.Blacklisted, a.Underwatch, a.AccountNumber)
 	if err != nil {
 		return model.Account{}, err

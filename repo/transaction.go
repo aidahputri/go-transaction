@@ -16,7 +16,7 @@ func NewTransaction(db *sql.DB) *Transaction {
 }
 
 func (u *Transaction) Create(ctx context.Context, t model.Transaction) error {
-	query := `INSERT INTO transfers (from_account, to_account, amount) VALUES ($1, $2, $3)`
+	query := `INSERT INTO transaction (from_account, to_account, amount) VALUES ($1, $2, $3)`
 	row := u.db.QueryRowContext(ctx, query, t.FromAccount, t.ToAccount, t.Amount)
 	if row.Err() != nil {
 		return row.Err()

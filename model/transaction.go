@@ -1,7 +1,7 @@
 package model
 
 type Transaction struct {
-	FromAccount string
-	ToAccount string
-	Amount float64
+	FromAccount string `json:"fromAccount"`
+	ToAccount string `json:"toAccount"`
+	Amount float64 `json:"amount"`
 }

@@ -4,11 +4,15 @@ import (
 	// "context"
 	"encoding/json"
 	"net/http"
+	"regexp"
+
 	// "strconv"
 
 	"github.com/aidahputri/go-transaction/model"
 	"github.com/aidahputri/go-transaction/repo"
 )
+
+var accountNumberRegex = regexp.MustCompile(`^\d{10}$`)
 
 type Handler struct {
 	AccountRepo     *repo.Account
@@ -24,6 +28,23 @@ func NewHandler(accountRepo *repo.Account, transactionRepo *repo.Transaction) *H
 
 // --------- HANDLER ACCOUNT -----------
 
+func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
+	accountNumber := r.URL.Query().Get("accountNumber")
+	if accountNumber == "" {
+		http.Error(w, "accountNumber is required", http.StatusBadRequest)
+		return
+	}
+
+	account, err := h.AccountRepo.Get(r.Context(), accountNumber)
+	if err != nil {
+		http.Error(w, "account not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(account)
+}
+
 func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var acc model.Account
 	if err := json.NewDecoder(r.Body).Decode(&acc); err != nil {
@@ -31,6 +52,11 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !accountNumberRegex.MatchString(acc.AccountNumber) {
+		http.Error(w, "invalid account number format: must be 10 digits", http.StatusBadRequest)
+		return
+	}
+	
 	if err := h.AccountRepo.Create(r.Context(), acc); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -124,6 +150,14 @@ func (h *Handler) Transfer(w http.ResponseWriter, r *http.Request) {
 	if fromAcc.Balance < tx.Amount {
 		http.Error(w, "insufficient balance", http.StatusBadRequest)
 		return
+	}
+
+	// set flag
+	if fromAcc.Blacklisted {
+		fromAcc.Underwatch = true
+	}
+	if toAcc.Blacklisted {
+		toAcc.Underwatch = true
 	}
 
 	fromAcc.Balance -= tx.Amount
