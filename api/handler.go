@@ -8,8 +8,11 @@ import (
 
 	// "strconv"
 	"log"
+
 	"github.com/aidahputri/go-transaction/model"
 	"github.com/aidahputri/go-transaction/repo"
+	"github.com/aidahputri/go-transaction/kafka"
+	// "github.com/segmentio/kafka-go"
 )
 
 var accountNumberRegex = regexp.MustCompile(`^\d{10}$`)
@@ -153,12 +156,12 @@ func (h *Handler) Transfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// set flag
-	if fromAcc.Blacklisted {
-		fromAcc.Underwatch = true
-	}
-	if toAcc.Blacklisted {
-		toAcc.Underwatch = true
-	}
+	// if fromAcc.Blacklisted {
+	// 	fromAcc.Underwatch = true
+	// }
+	// if toAcc.Blacklisted {
+	// 	toAcc.Underwatch = true
+	// }
 
 	fromAcc.Balance -= tx.Amount
 	toAcc.Balance += tx.Amount
@@ -184,7 +187,7 @@ func (h *Handler) Transfer(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("failed to marshal transaction for kafka:", err)
 	} else {
-		if err := PublishTransferMessage(txJson); err != nil {
+		if err := kafka.Write("test-topic", string(txJson)); err != nil {
 			log.Println("failed to publish to kafka:", err)
 		}
 	}

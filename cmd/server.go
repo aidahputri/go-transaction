@@ -8,7 +8,7 @@ import (
 	// "github.com/gin-gonic/gin"
 	"github.com/aidahputri/go-transaction/api"
 	"github.com/aidahputri/go-transaction/repo"
-	"github.com/aidahputri/go-transaction/kafka"
+	// "github.com/aidahputri/go-transaction/kafka"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,10 +29,10 @@ func init() {
 
 			// init kafka
 			// init kafka producer
-			api.InitKafka("localhost:9092", "transfer-topic")
+			// api.InitKafka("localhost:9092", "transfer-topic")
 
 			// run kafka consumer di goroutine
-			go kafka.StartKafkaConsumer("localhost:9092", "transfer-topic", accountRepo)
+			// go kafka.StartKafkaConsumer("localhost:9092", "transfer-topic", accountRepo)
 
 			// init router
 			router := api.InitRouter(handler)
