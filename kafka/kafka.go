@@ -35,14 +35,6 @@ func Write(topic, message string) error {
 }
 
 func Read(topic string) {
-	// bisa ngeset either groupid atau partitions, kalau kita ga ngeset itu kita bisa ngebaca semua data yang ada di kafka --> penting untuk set group id (disarankan set group id)
-	// kalau reader ke restart dan ke start lagi dia ga akan baca data yang udah pernah dibaca sebelumnya
-	// untuk satu reader biasanya dia ngebaca dari satu partition aja (satu partition bisa punya dua reader)
-	// Partitions: 0,
-	// selama group id nya beda, dia bisa ngakses berbarengan
-	// kalau gamasukkin group id --> itu akan dapet semua message dari awal
-	// nentuin jumlah partisi itu tergantung volume datanya seberapa banyak
-	// kalau group id sama dan partisi sama --> akan masuk ke salah satu doang
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  []string{"localhost:9092"},
 		Topic:    topic,
@@ -73,17 +65,21 @@ func Read(topic string) {
 
 		// Periksa sender
 		fromAcc, err := accountRepo.Get(ctx, tx.FromAccount)
+		// fmt.Println("From Account:", fromAcc)
 		if err == nil && fromAcc.Blacklisted {
 			fromAcc.Underwatch = true
+			fmt.Printf("Akun %v dalam pengawasan\n", fromAcc.AccountNumber)
 			if _, err := accountRepo.Update(ctx, fromAcc); err != nil {
 				log.Printf("failed to update sender: %v", err)
 			}
 		}
-
+		
 		// Periksa receiver
 		toAcc, err := accountRepo.Get(ctx, tx.ToAccount)
+		// fmt.Println("To Account:", toAcc)
 		if err == nil && toAcc.Blacklisted {
 			toAcc.Underwatch = true
+			fmt.Printf("Akun %+v dalam pengawasan\n", toAcc.AccountNumber)
 			if _, err := accountRepo.Update(ctx, toAcc); err != nil {
 				log.Printf("failed to update receiver: %v", err)
 			}
